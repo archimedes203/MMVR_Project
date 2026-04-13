@@ -1,0 +1,21 @@
+# ── Core ────────────────────────────────────────────────
+torch>=2.0
+torchvision>=0.15
+
+# ── Model backbone (optional — ViTPose/HRNet) ──────────
+timm>=1.0
+
+# ── Image processing ───────────────────────────────────
+opencv-python-headless
+Pillow
+
+# ── Numerical / scientific ─────────────────────────────
+numpy
+scikit-learn
+
+# ── Visualization ──────────────────────────────────────
+matplotlib
+seaborn
+
+# ── Utilities ──────────────────────────────────────────
+tqdm
