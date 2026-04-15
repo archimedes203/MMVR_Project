@@ -52,8 +52,8 @@ class Config:
     ]
 
     # ── Training ─────────────────────────────────────────────────────
-    BATCH_SIZE      = 32   # larger batches keep GPU busier per disk read
-    NUM_EPOCHS      = 30
+    BATCH_SIZE      = 64   # Changed from 32 to 64 to draw more GPU performance via CUDA.
+    NUM_EPOCHS      = 5    # Changed from 30 to 5 for testing purposes (gives fast runs)
     LR              = 1e-4   # lowered from 1e-3 — reduces exploding gradients
     LR_STEP         = [15, 25]
     LR_GAMMA        = 0.1
