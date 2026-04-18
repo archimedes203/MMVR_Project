@@ -14,8 +14,8 @@ import torch
 
 class Config:
     # ── Paths ────────────────────────────────────────────────────────
-    DATA_ROOT       = './P1'             # extracted P1.zip root folder
-    SPLIT_FILE      = './data_split.npz' # official MMVR train/val/test split
+    DATA_ROOT       = r'C:\Users\andyd\Desktop\MIAMI\GRADUATE\SPRING 2026\CSE586 Introduction to AI\MIDTERM PROJECT\CLAUDE\P1'
+    SPLIT_FILE      = r'C:\Users\andyd\Desktop\MIAMI\GRADUATE\SPRING 2026\CSE586 Introduction to AI\MIDTERM PROJECT\CLAUDE\data_split.npz'
     CHECKPOINT_DIR  = './checkpoints'
     RESULTS_DIR     = './results'
 
@@ -54,7 +54,7 @@ class Config:
     # ── Training ─────────────────────────────────────────────────────
     BATCH_SIZE      = 64   # Changed from 32 to 64 to draw more GPU performance via CUDA.
     NUM_EPOCHS      = 5    # Changed from 30 to 5 for testing purposes (gives fast runs)
-    LR              = 1e-4   # lowered from 1e-3 — reduces exploding gradients
+    LR              = 1e-3   # changed from 1e-4 to 1e-3 for testing purposes
     LR_STEP         = [15, 25]
     LR_GAMMA        = 0.1
     WEIGHT_DECAY    = 1e-4
