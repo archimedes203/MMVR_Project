@@ -35,12 +35,17 @@ class ResNet18PoseModel(nn.Module):
             nn.Conv2d(128, 64,  3, padding=1, bias=False),
             nn.BatchNorm2d(64),  nn.ReLU(inplace=True),
         )
-        self.head        = nn.Conv2d(64, num_kp, 1)
-        self.soft_argmax = SoftArgmax2D()
+        self.head         = nn.Conv2d(64, num_kp, 1)
+        self.soft_argmax  = SoftArgmax2D()
+        # Log-variance head for Gaussian NLL coordinate loss (B, 17, 2)
+        self.log_var_head = nn.Conv2d(64, num_kp * 2, 1)
 
     def forward(self, x):
         feats    = self.encoder(x)
         feats    = self.decoder(feats)
         heatmaps = self.head(feats)
         coords   = self.soft_argmax(heatmaps)
-        return heatmaps, coords
+        # Log-variance head: pool spatially then reshape to (B, 17, 2)
+        log_var  = self.log_var_head(feats).flatten(2).mean(dim=2).view(-1, self.num_kp, 2)
+        # return heatmaps, coords               # original (no log_var)
+        return heatmaps, coords, log_var
