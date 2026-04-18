@@ -20,7 +20,8 @@ def visualise_3d_pose(fusion_model, lifter, loader, device,
     batch = next(iter(loader))
     radar = batch['radar'].to(device)
 
-    _, pred_2d  = fusion_model(radar)         # (B, 17, 2)
+    # _, pred_2d           = fusion_model(radar)   # original (no log_var)
+    _, pred_2d, _log_var = fusion_model(radar)    # (B, 17, 2)
     pred_3d     = lifter(pred_2d, radar).cpu().numpy()  # (B, 17, 3)
 
     fig = plt.figure(figsize=(5*n, 5))

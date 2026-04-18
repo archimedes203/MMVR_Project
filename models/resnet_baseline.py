@@ -19,6 +19,7 @@ class ResNet18PoseModel(nn.Module):
 
     def __init__(self, num_kp=17, in_channels=2):
         super().__init__()
+        self.num_kp = num_kp
         backbone = resnet18(weights=None)
         backbone.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7,
                                    stride=2, padding=3, bias=False)

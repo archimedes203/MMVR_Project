@@ -26,7 +26,8 @@ def visualise_predictions(model, loader, device, model_name,
     gt_kp   = batch['coords'].numpy()    # (B, 17, 2)
     vis     = batch['vis'].numpy()       # (B, 17)
 
-    _, pred_kp = model(radar)
+    # _, pred_kp          = model(radar)   # original (no log_var)
+    _, pred_kp, _log_var = model(radar)
     pred_kp = pred_kp.cpu().numpy()
 
     n    = min(n_samples, radar.shape[0])
@@ -85,7 +86,8 @@ def visualise_predictions_with_mask(model, loader, device, model_name,
     gt_kp   = batch['coords'][:n].numpy()   # (n, 17, 2) [row_norm, col_norm]
     vis     = batch['vis'][:n].numpy()
 
-    _, pred_kp = model(radar)
+    # _, pred_kp          = model(radar)   # original (no log_var)
+    _, pred_kp, _log_var = model(radar)
     pred_kp = pred_kp.cpu().numpy()
 
     ds      = loader.dataset

@@ -135,7 +135,8 @@ def evaluate_model(model, loader, device, model_name='model'):
         gt_kp = batch['coords'].cpu().numpy()
         vis   = batch['vis'].cpu().numpy()
 
-        _, pred_kp = model(radar)
+        # _, pred_kp          = model(radar)   # original (no log_var)
+        _, pred_kp, _log_var = model(radar)
         all_pred.append(pred_kp.cpu().numpy())
         all_gt.append(gt_kp)
         all_vis.append(vis)

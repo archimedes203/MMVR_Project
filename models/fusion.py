@@ -47,6 +47,7 @@ class FusionModel(nn.Module):
 
     def __init__(self, num_kp=17):
         super().__init__()
+        self.num_kp   = num_kp
         self.hori_enc = HoriEncoder(out_ch=128)
         self.vert_enc = VertEncoder(out_ch=128)
 
@@ -74,8 +75,10 @@ class FusionModel(nn.Module):
             nn.BatchNorm2d(64), nn.ReLU(inplace=True),
         )
 
-        self.head        = nn.Conv2d(64, num_kp, 1)
-        self.soft_argmax = SoftArgmax2D()
+        self.head         = nn.Conv2d(64, num_kp, 1)
+        self.soft_argmax  = SoftArgmax2D()
+        # Log-variance head for Gaussian NLL coordinate loss (B, 17, 2)
+        self.log_var_head = nn.Conv2d(64, num_kp * 2, 1)
 
     def forward(self, radar):
         hori_feat = self.hori_enc(radar[:, 0:1, :, :])
@@ -94,4 +97,7 @@ class FusionModel(nn.Module):
 
         heatmaps = self.head(d1)
         coords   = self.soft_argmax(heatmaps)
-        return heatmaps, coords
+        # Log-variance head: pool spatially then reshape to (B, 17, 2)
+        log_var  = self.log_var_head(d1).flatten(2).mean(dim=2).view(-1, self.num_kp, 2)
+        # return heatmaps, coords               # original (no log_var)
+        return heatmaps, coords, log_var

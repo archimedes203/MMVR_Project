@@ -24,7 +24,7 @@ class Config:
     # P1S2: single subject, cross-environment split
     # P2S1: multiple subjects, random split
     # P2S2: multiple subjects, cross-environment split
-    PROTOCOL        = 'P1S1'
+    PROTOCOL        = 'P1S2' # Changed to P1S1 (AD 04/18/26)
 
     # ── Real image dimensions from MMVR dataset ──────────────────────
     IMG_H           = 480            # actual camera image height
@@ -53,7 +53,7 @@ class Config:
 
     # ── Training ─────────────────────────────────────────────────────
     BATCH_SIZE      = 64   # Changed from 32 to 64 to draw more GPU performance via CUDA.
-    NUM_EPOCHS      = 5    # Changed from 30 to 5 for testing purposes (gives fast runs)
+    NUM_EPOCHS      = 1    # Changed to 1 for testing purposes
     LR              = 1e-3   # changed from 1e-4 to 1e-3 for testing purposes
     LR_STEP         = [15, 25]
     LR_GAMMA        = 0.1
