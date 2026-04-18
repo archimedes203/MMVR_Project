@@ -24,7 +24,7 @@ class Config:
     # P1S2: single subject, cross-environment split
     # P2S1: multiple subjects, random split
     # P2S2: multiple subjects, cross-environment split
-    PROTOCOL        = 'P1S2' # Changed to P1S1 (AD 04/18/26)
+    PROTOCOL        = 'P2S1' # Changed to P2S1 (AD 04/18/26)
 
     # ── Real image dimensions from MMVR dataset ──────────────────────
     IMG_H           = 480            # actual camera image height
