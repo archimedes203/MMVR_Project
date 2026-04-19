@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/data/**)",
+      "Read(//d/data/P1/**)"
+    ]
+  }
+}

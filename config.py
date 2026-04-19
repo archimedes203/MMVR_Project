@@ -14,8 +14,8 @@ import torch
 
 class Config:
     # ── Paths ────────────────────────────────────────────────────────
-    DATA_ROOT       = r'C:\Users\andyd\Desktop\MIAMI\GRADUATE\SPRING 2026\CSE586 Introduction to AI\MIDTERM PROJECT\CLAUDE\P1'
-    SPLIT_FILE      = r'C:\Users\andyd\Desktop\MIAMI\GRADUATE\SPRING 2026\CSE586 Introduction to AI\MIDTERM PROJECT\CLAUDE\data_split.npz'
+    DATA_ROOT       = r'D:\data\P2'
+    SPLIT_FILE      = r'D:\data\P1\data_split.npz'
     CHECKPOINT_DIR  = './checkpoints'
     RESULTS_DIR     = './results'
 
@@ -24,7 +24,7 @@ class Config:
     # P1S2: single subject, cross-environment split
     # P2S1: multiple subjects, random split
     # P2S2: multiple subjects, cross-environment split
-    PROTOCOL        = 'P2S1' # Changed to P2S1 (AD 04/18/26)
+    PROTOCOL        = 'P2S1' 
 
     # ── Real image dimensions from MMVR dataset ──────────────────────
     IMG_H           = 480            # actual camera image height
