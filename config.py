@@ -14,17 +14,17 @@ import torch
 
 class Config:
     # ── Paths ────────────────────────────────────────────────────────
-    DATA_ROOT       = r'D:\data\P2'
+    DATA_ROOT       = r'D:\data\P1'
     SPLIT_FILE      = r'D:\data\P1\data_split.npz'
     CHECKPOINT_DIR  = './checkpoints'
     RESULTS_DIR     = './results'
 
     # ── Which protocol + split to use (from data_split.npz) ─────────
-    # P1S1: single subject, random split         (recommended for this project)
+    # P1S1: single subject, random split
     # P1S2: single subject, cross-environment split
     # P2S1: multiple subjects, random split
     # P2S2: multiple subjects, cross-environment split
-    PROTOCOL        = 'P2S1' 
+    PROTOCOL        = 'P1S1' 
 
     # ── Real image dimensions from MMVR dataset ──────────────────────
     IMG_H           = 480            # actual camera image height
@@ -52,9 +52,9 @@ class Config:
     ]
 
     # ── Training ─────────────────────────────────────────────────────
-    BATCH_SIZE      = 64   # Changed from 32 to 64 to draw more GPU performance via CUDA.
-    NUM_EPOCHS      = 1    # Changed to 1 for testing purposes
-    LR              = 1e-3   # changed from 1e-4 to 1e-3 for testing purposes
+    BATCH_SIZE      = 512   # Higher batch size = more GPU involvement (best to use a power of 2, e.g. 2^6 = 64)
+    NUM_EPOCHS      = 5
+    LR              = 1e-3
     LR_STEP         = [15, 25]
     LR_GAMMA        = 0.1
     WEIGHT_DECAY    = 1e-4

@@ -35,16 +35,16 @@ def train_one_epoch(model, loader, optimizer, criterion, device,
             continue
 
         optimizer.zero_grad()
-        # pred_hm, pred_kp = model(radar)                           # original (no log_var)
-        pred_hm, pred_kp, pred_log_var = model(radar)
+        pred_hm, pred_kp = model(radar)
+        # pred_hm, pred_kp, pred_log_var = model(radar)             # Gauss NLL variant
 
         if not torch.isfinite(pred_hm).all():
             n_skipped += 1
             optimizer.zero_grad()
             continue
 
-        # loss, lhm, lc = criterion(pred_hm, pred_kp, gt_hm, gt_kp, vis)   # original
-        loss, lhm, lc = criterion(pred_hm, pred_kp, pred_log_var, gt_hm, gt_kp, vis)
+        loss, lhm, lc = criterion(pred_hm, pred_kp, gt_hm, gt_kp, vis)
+        # loss, lhm, lc = criterion(pred_hm, pred_kp, pred_log_var, gt_hm, gt_kp, vis)   # Gauss NLL variant
 
         if not torch.isfinite(loss):
             n_skipped += 1
@@ -86,15 +86,15 @@ def validate(model, loader, criterion, device, is_fusion=False):
             n_skipped += 1
             continue
 
-        # pred_hm, pred_kp = model(radar)                           # original (no log_var)
-        pred_hm, pred_kp, pred_log_var = model(radar)
+        pred_hm, pred_kp = model(radar)
+        # pred_hm, pred_kp, pred_log_var = model(radar)             # Gauss NLL variant
 
         if not torch.isfinite(pred_hm).all():
             n_skipped += 1
             continue
 
-        # loss, lhm, lc = criterion(pred_hm, pred_kp, gt_hm, gt_kp, vis)   # original
-        loss, lhm, lc = criterion(pred_hm, pred_kp, pred_log_var, gt_hm, gt_kp, vis)
+        loss, lhm, lc = criterion(pred_hm, pred_kp, gt_hm, gt_kp, vis)
+        # loss, lhm, lc = criterion(pred_hm, pred_kp, pred_log_var, gt_hm, gt_kp, vis)   # Gauss NLL variant
 
         if not torch.isfinite(loss):
             n_skipped += 1

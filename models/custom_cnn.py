@@ -51,8 +51,8 @@ class CustomCNN(nn.Module):
         # ── Output head ─────────────────────────────────────────────
         self.head        = nn.Conv2d(64, num_kp, 1)
         self.soft_argmax = SoftArgmax2D()
-        # Log-variance head for Gaussian NLL coordinate loss (B, 17, 2)
-        self.log_var_head = nn.Conv2d(64, num_kp * 2, 1)
+        # Log-variance head for Gaussian NLL coordinate loss (B, 17, 2) — DISABLED
+        # self.log_var_head = nn.Conv2d(64, num_kp * 2, 1)
         self._init_weights()
 
     def _init_weights(self):
@@ -72,7 +72,7 @@ class CustomCNN(nn.Module):
         d1 = self.dec1(d2)
         heatmaps = self.head(d1)
         coords   = self.soft_argmax(heatmaps)
-        # Log-variance head: pool spatially then reshape to (B, 17, 2)
-        log_var  = self.log_var_head(d1).flatten(2).mean(dim=2).view(-1, self.num_kp, 2)
-        # return heatmaps, coords               # original (no log_var)
-        return heatmaps, coords, log_var
+        # Log-variance head: pool spatially then reshape to (B, 17, 2) — DISABLED
+        # log_var  = self.log_var_head(d1).flatten(2).mean(dim=2).view(-1, self.num_kp, 2)
+        return heatmaps, coords
+        # return heatmaps, coords, log_var      # Gauss NLL variant
