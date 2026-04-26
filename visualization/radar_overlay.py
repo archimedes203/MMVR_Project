@@ -29,9 +29,8 @@ def visualise_radar_overlay(loader, n=4, save_dir=None):
         # overlay keypoints scaled to radar space
         for ki in range(17):
             if vis[i,ki] > 0.1:
-                # x = height axis, map to radar depth axis
-                ry = coords[i,ki,0] * cfg.RADAR_H
-                rx = coords[i,ki,1] * cfg.RADAR_W
+                rx = coords[i,ki,0] * cfg.RADAR_W
+                ry = coords[i,ki,1] * cfg.RADAR_H
                 axes[i,1].plot(rx, ry, 'o', color='lime', ms=4)
         axes[i,1].set_title(f'Sample {i+1} — Vertical heatmap + KP', fontsize=9)
         axes[i,1].axis('off')

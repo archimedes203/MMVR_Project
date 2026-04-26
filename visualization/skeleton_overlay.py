@@ -43,14 +43,14 @@ def visualise_predictions(model, loader, device, model_name,
         # GT (green)
         for a, b in cfg.SKELETON:
             if vis[i,a] > 0.1 and vis[i,b] > 0.1:
-                ax.plot([gt_kp[i,a,1]*cfg.IMG_W, gt_kp[i,b,1]*cfg.IMG_W],
-                        [gt_kp[i,a,0]*cfg.IMG_H, gt_kp[i,b,0]*cfg.IMG_H],
+                ax.plot([gt_kp[i,a,0]*cfg.IMG_W, gt_kp[i,b,0]*cfg.IMG_W],
+                        [gt_kp[i,a,1]*cfg.IMG_H, gt_kp[i,b,1]*cfg.IMG_H],
                         '-o', color='lime', lw=1.5, ms=3)
         # Prediction (red)
         for a, b in cfg.SKELETON:
             if vis[i,a] > 0.1 and vis[i,b] > 0.1:
-                ax.plot([pred_kp[i,a,1]*cfg.IMG_W, pred_kp[i,b,1]*cfg.IMG_W],
-                        [pred_kp[i,a,0]*cfg.IMG_H, pred_kp[i,b,0]*cfg.IMG_H],
+                ax.plot([pred_kp[i,a,0]*cfg.IMG_W, pred_kp[i,b,0]*cfg.IMG_W],
+                        [pred_kp[i,a,1]*cfg.IMG_H, pred_kp[i,b,1]*cfg.IMG_H],
                         '-o', color='red', lw=1.5, ms=3, alpha=0.7)
         ax.set_xlim(0, cfg.IMG_W); ax.set_ylim(cfg.IMG_H, 0)
         ax.set_title(f'Sample {i+1}', fontsize=9)
@@ -75,15 +75,15 @@ def visualise_predictions_with_mask(model, loader, device, model_name,
                                      n_samples=6, save_dir=None):
     """
     Side-by-side GT vs prediction panels.
-    coords[:,0] = row (height axis) → matplotlib Y
-    coords[:,1] = col (width  axis) → matplotlib X
+    coords[:,0] = x/col (width axis) → matplotlib X
+    coords[:,1] = y/row (height axis) → matplotlib Y
     """
     save_dir = save_dir or cfg.RESULTS_DIR
     model.eval()
     batch   = next(iter(loader))
     n       = min(n_samples, batch['radar'].shape[0])
     radar   = batch['radar'][:n].to(device)
-    gt_kp   = batch['coords'][:n].numpy()   # (n, 17, 2) [row_norm, col_norm]
+    gt_kp   = batch['coords'][:n].numpy()   # (n, 17, 2) [x_norm, y_norm]
     vis     = batch['vis'][:n].numpy()
 
     # _, pred_kp          = model(radar)   # original (no log_var)
@@ -100,9 +100,9 @@ def visualise_predictions_with_mask(model, loader, device, model_name,
                     '#ff922b','#cc5de8','#20c997','#f06595',
                     '#74c0fc','#a9e34b','#ffa94d','#da77f2']
 
-    def draw(ax, kps, vis_arr, title, label_names=False):
+    def draw(ax, kps, vis_arr, title, sample_idx, label_names=False):
         try:
-            meta      = ds.samples[0]
+            meta      = ds.samples[sample_idx]
             mask_path = meta['pose_path'].replace('_pose.npz','_mask.npz')
             masks     = np.load(mask_path)['mask']
             canvas    = np.zeros((cfg.IMG_H, cfg.IMG_W, 3), dtype=np.uint8)
@@ -140,9 +140,9 @@ def visualise_predictions_with_mask(model, loader, device, model_name,
         r   = i // cols
         c   = (i %  cols) * 2
         draw(axes[r, c],   gt_kp[i],   vis[i],
-             f'Sample {i+1} — GT', label_names=True)
+             f'Sample {i+1} — GT', i, label_names=True)
         draw(axes[r, c+1], pred_kp[i], vis[i],
-             f'Sample {i+1} — {model_name}')
+             f'Sample {i+1} — {model_name}', i)
 
     for i in range(n, rows*cols):
         r = i // cols

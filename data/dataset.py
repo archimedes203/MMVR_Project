@@ -83,7 +83,7 @@ class MMVRDataset(Dataset):
         FLIP_PAIRS = [(1,2),(3,4),(5,6),(7,8),(9,10),(11,12),(13,14),(15,16)]
         kp_norm = kp_norm.copy(); vis = vis.copy()
         if random.random() < 0.5:
-            kp_norm[:, 1] = 1.0 - kp_norm[:, 1]
+            kp_norm[:, 0] = 1.0 - kp_norm[:, 0]
             for l, r in FLIP_PAIRS:
                 kp_norm[[l,r]] = kp_norm[[r,l]]
                 vis[[l,r]]     = vis[[r,l]]
