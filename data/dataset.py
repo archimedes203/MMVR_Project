@@ -68,8 +68,8 @@ class MMVRDataset(Dataset):
         np.nan_to_num(vis,     copy=False, nan=0.0)
         return kp_norm, vis.astype(np.float32)
 
-    def _augment_radar(self, radar):
-        if random.random() < 0.5:
+    def _augment_radar(self, radar, do_flip):
+        if do_flip:
             radar = np.flip(radar, axis=2).copy()
         if random.random() < 0.3:
             radar = np.clip(
@@ -79,10 +79,10 @@ class MMVRDataset(Dataset):
             radar = np.clip(radar * random.uniform(0.7, 1.3), 0, 1)
         return radar
 
-    def _augment_keypoints(self, kp_norm, vis):
+    def _augment_keypoints(self, kp_norm, vis, do_flip):
         FLIP_PAIRS = [(1,2),(3,4),(5,6),(7,8),(9,10),(11,12),(13,14),(15,16)]
         kp_norm = kp_norm.copy(); vis = vis.copy()
-        if random.random() < 0.5:
+        if do_flip:
             kp_norm[:, 0] = 1.0 - kp_norm[:, 0]
             for l, r in FLIP_PAIRS:
                 kp_norm[[l,r]] = kp_norm[[r,l]]
@@ -99,9 +99,10 @@ class MMVRDataset(Dataset):
         kp_norm, vis     = self._load_keypoints(s['pose_path'], s['person_idx'])
 
         if self.augment:
-            radar         = self._augment_radar(radar.numpy())
+            do_flip       = random.random() < 0.5
+            radar         = self._augment_radar(radar.numpy(), do_flip)
             radar         = torch.from_numpy(radar)
-            kp_norm, vis  = self._augment_keypoints(kp_norm, vis)
+            kp_norm, vis  = self._augment_keypoints(kp_norm, vis, do_flip)
 
         kp_abs      = kp_norm.copy()
         kp_abs[:,0] *= cfg.IMG_W   # x = col → scale by W
