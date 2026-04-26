@@ -53,7 +53,7 @@ class Config:
 
     # ── Training ─────────────────────────────────────────────────────
     BATCH_SIZE      = 512   # Higher batch size = more GPU involvement (best to use a power of 2, e.g. 2^6 = 64)
-    NUM_EPOCHS      = 5
+    NUM_EPOCHS      = 1
     LR              = 1e-3
     LR_STEP         = [15, 25]
     LR_GAMMA        = 0.1
