@@ -1,11 +1,11 @@
 Suggested TO-DO list: 
 
-1. Test-run entire code (using small number of epochs) to verify that .py file structure is understood
+1. [DONE] Test-run entire code (using small number of epochs) to verify that .py file structure is understood
    and that it runs cleanly and completely in its current format.
 
 2. Correct current model so that "precision" does not always come out to exactly 1 (seems wrong)
 
-3. Modify data pre-processing code to use P1S2 splitting protocol (larger training set).
+3. [DONE] Modify data pre-processing code to use P2S1 splitting protocol (larger training set). --> DONE (going back to P1S1)
 
 4. Modify config.py so that training parameters can be tuned (using a grid-search method?)
 
