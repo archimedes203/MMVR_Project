@@ -14,8 +14,9 @@ import torch
 
 class Config:
     # ── Paths ────────────────────────────────────────────────────────
-    DATA_ROOT       = r'D:\data\P1'
-    SPLIT_FILE      = r'D:\data\P1\data_split.npz'
+    DATA_ROOT       = os.environ.get('MMVR_DATA_ROOT', r'D:\data\P1')
+    SPLIT_FILE      = os.environ.get(
+        'MMVR_SPLIT_FILE', os.path.join(DATA_ROOT, 'data_split.npz'))
     CHECKPOINT_DIR  = './checkpoints'
     RESULTS_DIR     = './results'
 
@@ -58,7 +59,8 @@ class Config:
     LR_STEP         = [15, 25]
     LR_GAMMA        = 0.1
     WEIGHT_DECAY    = 1e-4
-    NUM_WORKERS     = 0   # 0 required on Windows to avoid DataLoader deadlock
+    NUM_WORKERS     = int(os.environ.get('MMVR_NUM_WORKERS', '0'))
+    # 0 is safer on native Windows; WSL/Linux can usually use 2-4 workers.
 
     # ── Evaluation ───────────────────────────────────────────────────
     PCK_THRESHOLD   = 0.05

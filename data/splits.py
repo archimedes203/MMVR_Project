@@ -2,10 +2,83 @@
 Official MMVR train/val/test split loading from data_split.npz.
 """
 
-import os
 import glob
+import hashlib
+import json
+import os
 import numpy as np
 from tqdm import tqdm
+
+
+def _split_cache_path(data_root, split_file, protocol, cache_dir=None):
+    """
+    Build a cache path that is specific to the dataset root, split file, and
+    protocol. The path hash prevents Windows/WSL or P1/P2 roots from sharing
+    an incompatible cache by accident.
+    """
+    cache_dir = cache_dir or os.path.join('.', 'cache', 'splits')
+    cache_key = json.dumps({
+        'data_root': os.path.abspath(data_root),
+        'split_file': os.path.abspath(split_file),
+        'protocol': protocol,
+    }, sort_keys=True)
+    digest = hashlib.sha1(cache_key.encode('utf-8')).hexdigest()[:12]
+    return os.path.join(cache_dir, f'{protocol}_{digest}_samples.json')
+
+
+def _load_cached_samples(cache_path, data_root, split_file, protocol):
+    """Load cached split samples when the cache metadata still matches."""
+    if not os.path.exists(cache_path):
+        return None
+
+    try:
+        with open(cache_path, 'r') as f:
+            payload = json.load(f)
+    except Exception as e:
+        print(f"[WARNING] Could not read split cache '{cache_path}': {e}")
+        return None
+
+    expected_meta = {
+        'data_root': os.path.abspath(data_root),
+        'split_file': os.path.abspath(split_file),
+        'protocol': protocol,
+    }
+    if payload.get('metadata') != expected_meta:
+        print(f"[WARNING] Ignoring stale split cache: {cache_path}")
+        return None
+
+    train_samples = payload.get('train_samples', [])
+    val_samples   = payload.get('val_samples', [])
+    test_samples  = payload.get('test_samples', [])
+
+    print(f"Loaded cached split index ({protocol}) → {cache_path}")
+    print(f"  Train : {len(train_samples):,} person-frame samples")
+    print(f"  Val   : {len(val_samples):,} person-frame samples")
+    print(f"  Test  : {len(test_samples):,} person-frame samples")
+    return train_samples, val_samples, test_samples
+
+
+def _save_cached_samples(cache_path, data_root, split_file, protocol,
+                         train_samples, val_samples, test_samples):
+    """Persist split sample lists so later runs can skip directory scanning."""
+    payload = {
+        'metadata': {
+            'data_root': os.path.abspath(data_root),
+            'split_file': os.path.abspath(split_file),
+            'protocol': protocol,
+        },
+        'train_samples': train_samples,
+        'val_samples': val_samples,
+        'test_samples': test_samples,
+    }
+
+    try:
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        with open(cache_path, 'w') as f:
+            json.dump(payload, f)
+        print(f"Saved split index cache → {cache_path}")
+    except Exception as e:
+        print(f"[WARNING] Could not save split cache '{cache_path}': {e}")
 
 
 def load_split_segments(split_file, protocol='P1S1'):
@@ -41,7 +114,9 @@ def load_split_segments(split_file, protocol='P1S1'):
     return train_segs, val_segs, test_segs
 
 
-def load_mmvr_samples_split(data_root, split_file, protocol='P1S1'):
+def load_mmvr_samples_split(data_root, split_file, protocol='P1S1',
+                            use_cache=True, force_rebuild=False,
+                            cache_dir=None):
     """
     Scan P1 and assign each person-frame sample to train/val/test
     according to the official data_split.npz segment lists.
@@ -61,6 +136,12 @@ def load_mmvr_samples_split(data_root, split_file, protocol='P1S1'):
         print(f"[WARNING] '{split_file}' not found — place data_split.npz "
               f"in the same folder as this project.")
         return [], [], []
+
+    cache_path = _split_cache_path(data_root, split_file, protocol, cache_dir)
+    if use_cache and not force_rebuild:
+        cached = _load_cached_samples(cache_path, data_root, split_file, protocol)
+        if cached is not None:
+            return cached
 
     train_segs, val_segs, test_segs = load_split_segments(split_file, protocol)
 
@@ -127,5 +208,9 @@ def load_mmvr_samples_split(data_root, split_file, protocol='P1S1'):
     print(f"  Test  : {len(test_samples):,} person-frame samples")
     if n_skipped:
         print(f"  Skipped {n_skipped} segments not in protocol '{protocol}'")
+
+    if use_cache:
+        _save_cached_samples(cache_path, data_root, split_file, protocol,
+                             train_samples, val_samples, test_samples)
 
     return train_samples, val_samples, test_samples
