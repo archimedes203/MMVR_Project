@@ -19,6 +19,8 @@ Options:
 """
 
 import argparse
+import gc
+import time
 import warnings
 
 import torch
@@ -111,12 +113,15 @@ def cmd_train():
     print(f"  Epochs: {cfg.NUM_EPOCHS}")
     print(f"  LR:     {cfg.LR}")
 
+    model_specs = [
+        ('custom_cnn', lambda: CustomCNN(num_kp=cfg.NUM_KEYPOINTS, in_channels=2)),
+        ('resnet18',   lambda: ResNet18PoseModel(num_kp=cfg.NUM_KEYPOINTS, in_channels=2)),
+        ('fusion',     lambda: FusionModel(num_kp=cfg.NUM_KEYPOINTS)),
+    ]
+
     histories = {}
-    for model_name, model in [
-        ('custom_cnn', CustomCNN(num_kp=cfg.NUM_KEYPOINTS, in_channels=2)),
-        ('resnet18',   ResNet18PoseModel(num_kp=cfg.NUM_KEYPOINTS, in_channels=2)),
-        ('fusion',     FusionModel(num_kp=cfg.NUM_KEYPOINTS)),
-    ]:
+    for model_name, model_fn in model_specs:
+        model = model_fn()
         print(f'\n>>> Training {model_name}...')
         try:
             histories[model_name] = run_training_radar(
@@ -127,6 +132,12 @@ def cmd_train():
         except Exception as e:
             print(f'\n[ERROR] {model_name} failed: {e}')
             raise
+        finally:
+            # Free model weights + optimizer states before next model loads
+            del model
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     save_histories(histories)
     print('\nTraining complete.')
@@ -269,4 +280,9 @@ def main():
 
 
 if __name__ == '__main__':
+    _t0 = time.time()
     main()
+    elapsed = time.time() - _t0
+    h, rem = divmod(int(elapsed), 3600)
+    m, s   = divmod(rem, 60)
+    print(f"\nTotal run time: {h:02d}:{m:02d}:{s:02d}")

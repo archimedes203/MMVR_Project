@@ -29,7 +29,7 @@ class PrefetchLoader:
             ...
     """
 
-    def __init__(self, loader, device, queue_size=2):
+    def __init__(self, loader, device, queue_size=1):
         """
         Args:
             loader     : any PyTorch DataLoader

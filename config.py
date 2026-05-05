@@ -14,7 +14,7 @@ import torch
 
 class Config:
     # ── Paths ────────────────────────────────────────────────────────
-    DATA_ROOT       = os.environ.get('MMVR_DATA_ROOT', r'D:\data\P1')
+    DATA_ROOT       = os.environ.get('MMVR_DATA_ROOT', '/home/andyd/MMVR_Project/P1')
     SPLIT_FILE      = os.environ.get(
         'MMVR_SPLIT_FILE', os.path.join(DATA_ROOT, 'data_split.npz'))
     CHECKPOINT_DIR  = './checkpoints'
@@ -53,13 +53,13 @@ class Config:
     ]
 
     # ── Training ─────────────────────────────────────────────────────
-    BATCH_SIZE      = 512   # Higher batch size = more GPU involvement (best to use a power of 2, e.g. 2^6 = 64)
-    NUM_EPOCHS      = 1
-    LR              = 1e-3
+    BATCH_SIZE      = 128   # Higher batch size = more GPU involvement (best to use a power of 2, e.g. 2^6 = 64)
+    NUM_EPOCHS      = 30
+    LR              = 1e-4
     LR_STEP         = [15, 25]
     LR_GAMMA        = 0.1
     WEIGHT_DECAY    = 1e-4
-    NUM_WORKERS     = int(os.environ.get('MMVR_NUM_WORKERS', '0'))
+    NUM_WORKERS     = int(os.environ.get('MMVR_NUM_WORKERS', '4'))
     # 0 is safer on native Windows; WSL/Linux can usually use 2-4 workers.
 
     # ── Evaluation ───────────────────────────────────────────────────
