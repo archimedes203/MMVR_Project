@@ -56,7 +56,7 @@ class Config:
     BATCH_SIZE      = 128   # Higher batch size = more GPU involvement (best to use a power of 2, e.g. 2^6 = 64)
     NUM_EPOCHS      = 30
     LR              = 1e-4
-    LR_STEP         = [15, 25]
+    LR_STEP         = [15, 25]  # Marks "milestone epochs" --> LR_GAMMA is multiplied w/ LR at these milestones (makes LR smaller)
     LR_GAMMA        = 0.1
     WEIGHT_DECAY    = 1e-4
     NUM_WORKERS     = int(os.environ.get('MMVR_NUM_WORKERS', '4'))
