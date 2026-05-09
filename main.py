@@ -104,7 +104,7 @@ def cmd_train():
     train_loader, val_loader, test_loader, _, _, _ = \
         create_dataloaders_from_splits(train_samples, val_samples, test_samples, cfg)
 
-    criterion = PoseLoss(lambda_hm=5.0, lambda_coord=1.0)
+    criterion = PoseLoss(lambda_hm=1.0, lambda_coord=0.5)  # Updated to optimal values after tuning (AD 05/09/26)
 
     print("\n" + "="*60)
     print(" TRAINING")

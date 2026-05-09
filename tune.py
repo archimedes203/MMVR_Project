@@ -8,6 +8,7 @@ Usage:
     python tune.py --epochs 20            # use 20 epochs per trial
     python tune.py --model resnet18       # tune one model only
     python tune.py --grid                 # full grid search (240 combos — slow!)
+    python tune.py --plot-only            # regenerate plots from existing CSV, skip training
 
 Results are saved incrementally to ./results/tuning_results.csv so the run can
 be interrupted and resumed safely.
@@ -78,6 +79,8 @@ def parse_args():
                         help='RNG seed for random sampling (default: 0)')
     parser.add_argument('--grid', action='store_true',
                         help='Full grid search instead of random (240 combos — slow!)')
+    parser.add_argument('--plot-only', action='store_true',
+                        help='Skip training; regenerate plots from existing CSV')
     return parser.parse_args()
 
 
@@ -198,6 +201,130 @@ def print_summary(csv_path, model_names):
     print(f"\nFull results → {csv_path}")
 
 
+# ── Plots ────────────────────────────────────────────────────────────────────
+
+def plot_results(csv_path, model_names, out_dir='./results'):
+    """Save three tuning report plots from the results CSV."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from matplotlib.patches import Patch
+
+    if not os.path.exists(csv_path):
+        print("No results CSV found; skipping plots.")
+        return
+
+    with open(csv_path, newline='') as f:
+        rows = list(csv.DictReader(f))
+
+    valid = [r for r in rows if r['best_val_loss'] not in ('', 'nan')]
+    if not valid:
+        print("No valid results to plot.")
+        return
+
+    for r in valid:
+        r['best_val_loss']  = float(r['best_val_loss'])
+        r['lr']             = float(r['lr'])
+        r['weight_decay']   = float(r['weight_decay'])
+        r['lambda_hm']      = float(r['lambda_hm'])
+        r['lambda_coord']   = float(r['lambda_coord'])
+
+    os.makedirs(out_dir, exist_ok=True)
+    for style in ('seaborn-v0_8-whitegrid', 'seaborn-whitegrid'):
+        try:
+            plt.style.use(style)
+            break
+        except OSError:
+            pass
+
+    MODEL_COLORS = {'custom_cnn': '#4C72B0', 'resnet18': '#DD8452', 'fusion': '#55A868'}
+
+    # ── 1. Best val loss per model ────────────────────────────────────────────
+    model_bests = {}
+    for mname in model_names:
+        m_rows = [r for r in valid if r['model'] == mname]
+        if m_rows:
+            model_bests[mname] = min(r['best_val_loss'] for r in m_rows)
+
+    if model_bests:
+        fig, ax = plt.subplots(figsize=(max(4, len(model_bests) * 1.8), 4))
+        names  = list(model_bests)
+        values = [model_bests[n] for n in names]
+        colors = [MODEL_COLORS.get(n, '#888') for n in names]
+        bars   = ax.bar(names, values, color=colors, width=0.5)
+        for bar, val in zip(bars, values):
+            ax.text(bar.get_x() + bar.get_width() / 2,
+                    bar.get_height() + max(values) * 0.01,
+                    f'{val:.4f}', ha='center', va='bottom', fontsize=9)
+        ax.set_xlabel('Model')
+        ax.set_ylabel('Best Validation Loss')
+        ax.set_title('Best Validation Loss by Model')
+        ax.set_ylim(0, max(values) * 1.15)
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, 'tuning_model_comparison.png'), dpi=150)
+        plt.close()
+
+    # ── 2. Hyperparameter sensitivity (2 × 2 box plots) ──────────────────────
+    hp_keys   = ['lr', 'weight_decay', 'lambda_hm', 'lambda_coord']
+    hp_labels = ['Learning Rate', 'Weight Decay', r'$\lambda_{hm}$', r'$\lambda_{coord}$']
+    fmt_sci   = {'lr', 'weight_decay'}
+
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    for ax, hp, label in zip(axes.flatten(), hp_keys, hp_labels):
+        unique_vals = sorted(set(r[hp] for r in valid))
+        data        = [[r['best_val_loss'] for r in valid if r[hp] == v]
+                       for v in unique_vals]
+        bp = ax.boxplot(data, patch_artist=True,
+                        medianprops=dict(color='black', linewidth=1.5))
+        for patch in bp['boxes']:
+            patch.set_facecolor('#4C72B0')
+            patch.set_alpha(0.55)
+        tick_labels = ([f'{v:.0e}' for v in unique_vals] if hp in fmt_sci
+                       else [str(v) for v in unique_vals])
+        ax.set_xticklabels(tick_labels, rotation=20, ha='right')
+        ax.set_xlabel(label)
+        ax.set_ylabel('Best Validation Loss')
+        ax.set_title(f'Effect of {label}')
+
+    fig.suptitle('Hyperparameter Sensitivity', fontsize=13, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(os.path.join(out_dir, 'tuning_hp_sensitivity.png'), dpi=150)
+    plt.close()
+
+    # ── 3. Top-15 trials horizontal bar chart ────────────────────────────────
+    top = sorted(valid, key=lambda r: r['best_val_loss'])[:15]
+    labels = [
+        f"{r['model']}  lr={r['lr']:.0e}  wd={r['weight_decay']:.0e}"
+        f"  λhm={r['lambda_hm']}  λc={r['lambda_coord']}"
+        for r in top
+    ]
+    vals       = [r['best_val_loss'] for r in top]
+    bar_colors = [MODEL_COLORS.get(r['model'], '#888') for r in top]
+
+    fig, ax = plt.subplots(figsize=(9, max(4, len(top) * 0.45 + 1)))
+    ax.barh(range(len(vals)), vals, color=bar_colors)
+    ax.set_yticks(range(len(vals)))
+    ax.set_yticklabels(labels, fontsize=7.5)
+    ax.invert_yaxis()
+    ax.set_xlabel('Best Validation Loss')
+    ax.set_title('Top 15 Trials by Best Validation Loss')
+
+    present_models = sorted({r['model'] for r in top})
+    legend_handles = [Patch(facecolor=MODEL_COLORS.get(m, '#888'), label=m)
+                      for m in present_models]
+    ax.legend(handles=legend_handles, loc='lower right', fontsize=8)
+    plt.tight_layout()
+    plt.savefig(os.path.join(out_dir, 'tuning_top_trials.png'), dpi=150)
+    plt.close()
+
+    print(f"\nPlots saved to {out_dir}/")
+    for name in ('tuning_model_comparison.png',
+                 'tuning_hp_sensitivity.png',
+                 'tuning_top_trials.png'):
+        print(f"  {name}")
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -205,14 +332,20 @@ def main():
     os.makedirs('./results', exist_ok=True)
     os.makedirs(TUNING_CKPT_DIR, exist_ok=True)
 
+    models_to_tune = (list(MODEL_SPECS.items()) if args.model == 'all'
+                      else [(args.model, MODEL_SPECS[args.model])])
+    model_names    = [m for m, _ in models_to_tune]
+
+    if args.plot_only:
+        print_summary(RESULTS_CSV, model_names)
+        plot_results(RESULTS_CSV, model_names)
+        return
+
     print("Loading data...")
     train_samples, val_samples, test_samples = load_mmvr_samples_split(
         cfg.DATA_ROOT, cfg.SPLIT_FILE, cfg.PROTOCOL)
     train_loader, val_loader, _, _, _, _ = create_dataloaders_from_splits(
         train_samples, val_samples, test_samples, cfg)
-
-    models_to_tune = (list(MODEL_SPECS.items()) if args.model == 'all'
-                      else [(args.model, MODEL_SPECS[args.model])])
 
     combos     = build_combos(args.n_samples, args.seed, args.grid)
     total_runs = len(models_to_tune) * len(combos)
@@ -221,7 +354,7 @@ def main():
     print(f"\nSearch       : {'grid' if args.grid else 'random'}")
     print(f"Combos/model : {len(combos)}")
     print(f"Epochs/trial : {args.epochs}")
-    print(f"Models       : {[m for m, _ in models_to_tune]}")
+    print(f"Models       : {model_names}")
     print(f"Total runs   : {total_runs}  "
           f"({len(done)} already completed, will skip)")
 
@@ -255,7 +388,8 @@ def main():
     except KeyboardInterrupt:
         print("\n[Interrupted] Saving summary of completed trials...")
 
-    print_summary(RESULTS_CSV, [m for m, _ in models_to_tune])
+    print_summary(RESULTS_CSV, model_names)
+    plot_results(RESULTS_CSV, model_names)
 
 
 if __name__ == '__main__':
