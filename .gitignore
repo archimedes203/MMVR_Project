@@ -8,6 +8,8 @@ dist/
 build/
 *.egg
 
+.codex/
+
 # ── Virtual Environment ────────────────────────────────
 venv/
 .venv/
