@@ -14,7 +14,9 @@ import torch
 
 class Config:
     # ── Paths ────────────────────────────────────────────────────────
-    DATA_ROOT       = os.environ.get('MMVR_DATA_ROOT', '/home/andyd/MMVR_Project/P1')
+    
+    # xxx: filepath destination of your P1 data folder.
+    DATA_ROOT       = os.environ.get('xxx')
     SPLIT_FILE      = os.environ.get(
         'MMVR_SPLIT_FILE', os.path.join(DATA_ROOT, 'data_split.npz'))
     CHECKPOINT_DIR  = './checkpoints'

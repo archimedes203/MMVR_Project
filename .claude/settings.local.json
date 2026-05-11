@@ -2,7 +2,19 @@
   "permissions": {
     "allow": [
       "Read(//d/data/**)",
-      "Read(//d/data/P1/**)"
+      "Read(//d/data/P1/**)",
+      "Read(//c/Users/andyd/**)",
+      "Bash(find \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\" -maxdepth 3 2>/dev/null | head -50)",
+      "Read(///wsl.localhost/Ubuntu/home/andyd/**)",
+      "Bash(find \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\" -maxdepth 4 -not -path '*results*' -not -path '*checkpoints*' -not -path '*__pycache__*' -not -path '*\\\\.git*' -not -path '*\\\\.claude*' | sort)",
+      "Bash(find \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\" -maxdepth 1 -not -path '*\\\\.git*' | sort)",
+      "Bash(find \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\\\\\\\\models\" \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\\\\\\\\training\" \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\\\\\\\\evaluation\" \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\\\\\\\\visualization\" -not -path '*__pycache__*' | sort)",
+      "Read(///wsl.localhost/Ubuntu/home/andyd/MMVR_Project/**)",
+      "Bash(find \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\\\\\\\\data\" -not -path '*__pycache__*' | sort)",
+      "Bash(rm \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\andyd\\\\\\\\MMVR_Project\\\\\\\\README.md\")"
+    ],
+    "additionalDirectories": [
+      "\\\\wsl.localhost\\Ubuntu\\home\\andyd\\MMVR_Project"
     ]
   }
 }
